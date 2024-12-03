@@ -4,7 +4,7 @@ function ProgramSpecifications() {
       <strong>Program Specifications</strong>
       <p className="mt-2 text-sm">
         1. Menggunakan 1 konsep OOP(Selain Konsep Obeject) 30 POIN
-        <b/>
+        <br/>
         2. Menggunakan One Liner 15 POINT
       </p>
     </div>
