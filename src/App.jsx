@@ -13,9 +13,9 @@ function App() {
   const [errorMessage, setErrorMessage] = useState(''); 
   const [code, setCode] = useState(''); 
   const [id, setId] = useState('');
+  const [q, setQ] = useState('');
   const appRef = useRef(null);
   const codeEditorRef = useRef(null); 
-
 
   const handleStart = async (npmInput) => {
     setIsLoading(true);
@@ -30,6 +30,7 @@ function App() {
         setShowEditor(true);
         setCode(response.code); 
         setId(numberId); 
+        setQ(response.q);
         setLoadingMessage('');
       } else {
         setErrorMessage('NPM is not registered');
@@ -59,12 +60,12 @@ function App() {
     }
   };
 
-
   const handleSubmissionSuccess = () => {
     setShowEditor(false);
     setShowStartSection(true);
     setCode('');
     setId('');
+    setQ('');
     setLoadingMessage('');
     setShowFullscreenModal(true); 
   };
@@ -128,6 +129,7 @@ function App() {
               code={code} 
               id={id} 
               onSubmitSuccess={handleSubmissionSuccess} 
+              q={q}
             /> 
           </motion.div>
         )}

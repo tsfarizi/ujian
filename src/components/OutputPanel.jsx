@@ -3,7 +3,7 @@ import PropTypes from 'prop-types';
 function OutputPanel({ output, refreshInterpreter }) {
   return (
     <div
-      className="output mt-4 p-4 bg-[#282c34] text-white border border-gray-700 rounded overflow-y-auto max-h-[200px] break-words"
+      className="custom-scrollbar mt-4 p-4 bg-[#282c34] text-white border border-gray-700 rounded overflow-y-auto max-h-[200px] break-words"
     >
       <div className="flex justify-between items-center mb-2">
         <strong>Output:</strong>
