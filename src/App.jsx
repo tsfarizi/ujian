@@ -15,21 +15,19 @@ function App() {
   const [id, setId] = useState('');
   const [q, setQ] = useState('');
   const appRef = useRef(null);
-  const codeEditorRef = useRef(null); 
+  const codeEditorRef = useRef(null);
 
   const handleStart = async (npmInput) => {
     setIsLoading(true);
     setLoadingMessage('Please wait...');
     try {
       const numberId = parseInt(npmInput, 10);
-      console.log('Sending login request with ID:', numberId); 
       const response = await login(numberId);
-      console.log('Login response:', response); 
       if (response.result) {
         setShowStartSection(false);
         setShowEditor(true);
-        setCode(response.code); 
-        setId(numberId); 
+        setCode(response.code);
+        setId(numberId);
         setQ(response.q);
         setLoadingMessage('');
       } else {
@@ -39,13 +37,13 @@ function App() {
         }, 3000);
       }
     } catch (error) {
-      console.error('Login Error:', error); 
       setErrorMessage('NPM is not registered');
+      console.log('Error:', error);
       setTimeout(() => {
         setErrorMessage('');
       }, 3000);
     } finally {
-      setIsLoading(false); 
+      setIsLoading(false);
       setLoadingMessage('');
     }
   };
@@ -60,41 +58,36 @@ function App() {
     }
   };
 
-  const handleSubmissionSuccess = () => {
+  const handleSubmissionEnd = () => {
     setShowEditor(false);
     setShowStartSection(true);
     setCode('');
     setId('');
     setQ('');
     setLoadingMessage('');
-    setShowFullscreenModal(true); 
+    setShowFullscreenModal(true);
   };
 
   useEffect(() => {
     const handleFullscreenChange = () => {
       if (!document.fullscreenElement) {
         if (showEditor && codeEditorRef.current) {
-          console.log('Exiting fullscreen from CodeEditor, submitting code...');
           codeEditorRef.current.handleSubmit();
         }
         if (showStartSection) {
-          console.log('Exiting fullscreen from StartSection, showing fullscreen modal...');
           setShowFullscreenModal(true);
         }
       }
     };
-
     document.addEventListener('fullscreenchange', handleFullscreenChange);
-
     return () => {
       document.removeEventListener('fullscreenchange', handleFullscreenChange);
     };
-  }, [showEditor, showStartSection]); 
+  }, [showEditor, showStartSection]);
 
   return (
     <div ref={appRef} className="relative h-screen w-screen overflow-hidden bg-gray-900">
       <h1 className="text-2xl font-bold mb-4 flex justify-center text-white">Ujian</h1>
-
       {showFullscreenModal && (
         <div className="absolute inset-0 flex items-center justify-center bg-dark-bg bg-opacity-90 z-50">
           <div className="bg-purple p-8 rounded-md shadow-md text-center">
@@ -110,12 +103,10 @@ function App() {
           </div>
         </div>
       )}
-
       <AnimatePresence mode="wait">
         {showStartSection && (
-          <StartSection onStart={handleStart} /> 
+          <StartSection onStart={handleStart} />
         )}
-
         {showEditor && (
           <motion.div
             key="codeEditor"
@@ -124,17 +115,16 @@ function App() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5, ease: 'easeInOut' }}
           >
-            <CodeEditor 
+            <CodeEditor
               ref={codeEditorRef}
-              code={code} 
-              id={id} 
-              onSubmitSuccess={handleSubmissionSuccess} 
+              code={code}
+              id={id}
+              onSubmitEnd={handleSubmissionEnd}
               q={q}
-            /> 
+            />
           </motion.div>
         )}
       </AnimatePresence>
-
       {isLoading && (
         <div className="absolute inset-0 flex items-center justify-center bg-black bg-opacity-50 z-50">
           <p
@@ -145,7 +135,6 @@ function App() {
           </p>
         </div>
       )}
-
       {errorMessage && (
         <div className="absolute top-4 left-1/2 transform -translate-x-1/2 bg-red-500 text-white px-4 py-2 rounded">
           {errorMessage}

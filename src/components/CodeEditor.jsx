@@ -4,15 +4,15 @@ import OutputPanel from "./OutputPanel";
 import ButtonsPanel from "./ButtonsPanel";
 import ProgramSpecifications from "./ProgramSpecifications";
 import usePyodide from "../hooks/usePyodide";
-import { uploadCode, submitNumber } from "../api/api"; 
+import { uploadCode, submitNumber } from "../api/api";
 import PropTypes from 'prop-types';
 
-const CodeEditor = forwardRef(({ code, id, onSubmitSuccess, q }, ref) => { 
+const CodeEditor = forwardRef(({ code, id, onSubmitEnd, q }, ref) => {
   const editorRef = useRef(null);
   const { runCode, refreshInterpreter, output } = usePyodide();
-  const [isUploading, setIsUploading] = useState(false); 
-  const [isSubmitting, setIsSubmitting] = useState(false); 
-  const [message, setMessage] = useState(''); 
+  const [isUploading, setIsUploading] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [message, setMessage] = useState('');
 
   const handleEditorMount = useCallback((view) => {
     editorRef.current = view;
@@ -29,7 +29,7 @@ const CodeEditor = forwardRef(({ code, id, onSubmitSuccess, q }, ref) => {
     }
   }, [code]);
 
-  const handleRunCode = useCallback(async () => { 
+  const handleRunCode = useCallback(async () => {
     if (editorRef.current) {
       let codeToRun = '';
       if (typeof editorRef.current === 'object' && editorRef.current.state) {
@@ -37,17 +37,15 @@ const CodeEditor = forwardRef(({ code, id, onSubmitSuccess, q }, ref) => {
       } else if (editorRef.current instanceof HTMLTextAreaElement) {
         codeToRun = editorRef.current.value;
       }
-
       try {
         runCode(codeToRun);
         setIsUploading(true);
         setMessage('Uploading code...');
         const response = await uploadCode(id, codeToRun);
-        console.log('Upload response:', response);
-        setMessage('Code uploaded successfully!');
+        setMessage(response.message || response.error || 'No message returned.');
       } catch (error) {
         console.error('Error uploading code:', error);
-        setMessage('Error uploading code.');
+        setMessage(error.message || error.error || 'Error uploading code.');
       } finally {
         setTimeout(() => {
           setIsUploading(false);
@@ -58,37 +56,26 @@ const CodeEditor = forwardRef(({ code, id, onSubmitSuccess, q }, ref) => {
   }, [id, runCode]);
 
   const handleSubmit = useCallback(async () => {
-    if (editorRef.current) {
-      let codeToUpload = '';
-      if (typeof editorRef.current === 'object' && editorRef.current.state) {
-        codeToUpload = editorRef.current.state.doc.toString();
-      } else if (editorRef.current instanceof HTMLTextAreaElement) {
-        codeToUpload = editorRef.current.value;
-      }
-
-      try {
-        setIsSubmitting(true);
-        setMessage('Submitting code...');
-        const uploadResponse = await uploadCode(id, codeToUpload);
-        const submitResponse = await submitNumber(id);
-        console.log('Upload response:', uploadResponse);
-        console.log('Submit response:', submitResponse);
-        setMessage('Code submitted successfully!');
-        setTimeout(() => {
-          setIsSubmitting(false);
-          setMessage('');
-          onSubmitSuccess(); 
-        }, 2000);
-      } catch (error) {
-        console.error('Error submitting code:', error);
-        setMessage('Error submitting code.');
-        setTimeout(() => {
-          setIsSubmitting(false);
-          setMessage('');
-        }, 2000);
-      }
+    try {
+      setIsSubmitting(true);
+      setMessage('Submitting code...');
+      const submitResponse = await submitNumber(id);
+      setMessage(submitResponse.message || submitResponse.error || 'No message returned from submit.');
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setMessage('');
+        onSubmitEnd();
+      }, 2000);
+    } catch (error) {
+      console.error('Error submitting code:', error);
+      setMessage(error.message || error.error || 'Error submitting code.');
+      setTimeout(() => {
+        setIsSubmitting(false);
+        setMessage('');
+        onSubmitEnd();
+      }, 2000);
     }
-  }, [id, onSubmitSuccess]);
+  }, [id, onSubmitEnd]);
 
   useImperativeHandle(ref, () => ({
     handleSubmit,
@@ -119,6 +106,7 @@ const CodeEditor = forwardRef(({ code, id, onSubmitSuccess, q }, ref) => {
           <ButtonsPanel
             onRunCode={handleRunCode}
             onSubmitCode={handleSubmit}
+            isSubmitting={isSubmitting}
           />
           <OutputPanel
             output={output}
@@ -138,8 +126,8 @@ CodeEditor.displayName = 'CodeEditor';
 
 CodeEditor.propTypes = {
   code: PropTypes.string,
-  id: PropTypes.number.isRequired, 
-  onSubmitSuccess: PropTypes.func.isRequired, 
+  id: PropTypes.number.isRequired,
+  onSubmitEnd: PropTypes.func.isRequired,
   q: PropTypes.string.isRequired,
 }
 

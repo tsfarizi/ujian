@@ -92,3 +92,18 @@
     opacity: 1;
   }
   
+  .animated-button.disabled {
+    filter: grayscale(100%);
+    pointer-events: none;
+    cursor: not-allowed;
+    transition: none;
+    animation: none;
+  }
+  
+  .animated-button.disabled .arr-1,
+  .animated-button.disabled .arr-2,
+  .animated-button.disabled .text,
+  .animated-button.disabled .circle {
+    animation: none;
+  }
+  
